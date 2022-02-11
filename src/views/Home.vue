@@ -7,6 +7,7 @@ export default {
       places: [],
       newPlacesParams: {},
       currentPlace: {},
+      updatePlace: {},
     };
   },
   created: function () {
@@ -33,7 +34,28 @@ export default {
     },
     placesShow: function (place) {
       this.currentPlace = place;
+      this.updatePlace = place;
       document.querySelector("#place-details").showModal();
+    },
+    placesUpdate: function (place) {
+      axios
+        .patch(`http://localhost:3000/places/${place.id}`, this.updatePlace)
+        .then((response) => {
+          console.log("Places Update", response);
+          this.currentPlace = {};
+        })
+        .catch((error) => {
+          console.log("places update error", error.response);
+        });
+    },
+    placesDestroy: function (place) {
+      if (confirm("Are you sure? This cannot be undone")) {
+        axios.delete(`http://localhost:3000/places/${place.id}`).then((response) => {
+          console.log("Place data destroyed", response);
+          var index = this.places.indexOf(place);
+          this.places.splice(index, 1);
+        });
+      }
     },
   },
 };
@@ -57,8 +79,17 @@ export default {
     <dialog id="place-details">
       <form method="dialog">
         <h1>Place info</h1>
-        <p>Name: {{ currentPlace.name }}</p>
-        <p>Address: {{ currentPlace.address }}</p>
+        <p>
+          Name:
+          <input type="text" v-model="updatePlace.name" />
+        </p>
+        <p>
+          Address:
+          <input type="text" v-model="updatePlace.address" />
+        </p>
+        <button v-on:click="placesUpdate(currentPlace)">UPDATE</button>
+        <button v-on:click="placesDestroy(currentPlace)">Destroy Place</button>
+
         <button>Close</button>
       </form>
     </dialog>
